@@ -1,11 +1,218 @@
-- name: collect default set of facts
-  junipernetworks.junos.junos_facts:
+---
+- name: Gather information from Juniper device
+  hosts: mx
+  connection: local
+  gather_facts: no
+  vars:
+    ansible_host: "192.168.72.14"
+    ansible_user: "admin"
+    ansible_password: "PACnms123"
+    
+  tasks:
+    - name: Get software version
+      shell: |
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show version | save filename_version"
+      register: junos_result
 
-- name: collect default set of facts and configuration
-  junipernetworks.junos.junos_facts:
-    gather_subset: config
+    - name: Print response
+      debug:
+        var: "junos_result"
 
-- name: Gather legacy and resource facts
-  junipernetworks.junos.junos_facts:
-    gather_subset: all
-    gather_network_resources: all
+    - name: Log the Hardware Version Information
+      shell: |
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show chassis hardware | save filename_hardware"
+      register: junos_result_hardware
+
+    - name: Print Hardware Version response
+      debug:
+        var: "junos_result_hardware"
+
+    - name: Log the Chassis Environment Information
+      shell: |
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show chassis environment | save filename_environment"
+      register: junos_result_environment
+
+    - name: Print Chassis Environment response
+      debug:
+        var: "junos_result_environment"
+
+    - name: Log the Active Configuration
+      shell: |
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show configuration | save filename_configuration"
+      register: junos_result_configuration
+
+    - name: Print Active Configuration response
+      debug:
+        var: "junos_result_configuration"
+
+    - name: Log the Interfaces on the Router
+      shell: |
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show interface terse | save filename_interfaces"
+      register: junos_result_interfaces
+
+    - name: Print Interfaces response
+      debug:
+        var: "junos_result_interfaces"
+
+    - name: Log the BGP Adjacency Information
+      shell: |
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show bgp summary | save filename_bgp"
+      register: junos_result_bgp
+
+    - name: Print BGP Adjacency response
+      debug:
+        var: "junos_result_bgp"
+
+    - name: Log the IS-IS Adjacency Information
+      shell: |
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show isis adjacency brief | save filename_isis"
+      register: junos_result_isis
+
+    - name: Print IS-IS Adjacency response
+      debug:
+        var: "junos_result_isis"
+
+    - name: Log the OSPF Adjacency Information
+      shell: |
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show ospf neighbor instance all | save filename_ospf"
+      register: junos_result_ospf
+
+    - name: Print OSPF Adjacency response
+      debug:
+        var: "junos_result_ospf"
+
+    - name: Log the VRRP Adjacency Information
+      shell: |
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show vrrp summary | save filename_vrrp"
+      register: junos_result_vrrp
+
+    - name: Print VRRP Adjacency response
+      debug:
+        var: "junos_result_vrrp"
+
+    - name: Log the System Storage Information
+      shell: |
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show system storage | save filename_storage"
+      register: junos_result_storage
+
+    - name: Print System Storage response
+      debug:
+        var: "junos_result_storage"
+        
+# Step 5-1: Waiting
+    - name: Wait for 15 seconds after saving logs
+      pause:
+        seconds: 15
+
+# Step 3 remote save to ftp
+    - name: Set files to copy to FTP
+      set_fact:
+        files_to_copy:
+          - "/var/home/admin/filename_version"
+          - "/var/home/admin/filename_hardware"
+          - "/var/home/admin/filename_environment"
+          - "/var/home/admin/filename_configuration"
+          - "/var/home/admin/filename_interfaces"
+          - "/var/home/admin/filename_bgp"
+          - "/var/home/admin/filename_isis"
+          - "/var/home/admin/filename_ospf"
+          - "/var/home/admin/filename_vrrp"
+          - "/var/home/admin/filename_storage"    
+
+    - name: Save to ftp     
+      shell: |
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "file copy {{ item }} ftp://venkatag:PACnms123@192.168.72.192/test/ansible_automation/ routing-instance mgmt_junos"
+      loop: "{{ files_to_copy }}"
+      register: junos_ftp
+    - name: Print save to ftp response
+      debug:
+        var: "junos_ftp" 
+
+    - name: request snapshot
+      shell: |
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "request system snapshot"
+      register: junos_snapshot
+    - name: Print save to ftp response
+      debug:
+        var: "junos_snapshot"        
+       
+# Step 5-2: Waiting
+    - name: Wait for 30 seconds after the backup
+      pause:
+        seconds: 30
+        
+# Step 4 MAKE SURE THE FILE NAME IS RIGHT
+    - name: Load the target file into the device
+      shell: |
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "file copy ftp://venkatag:PACnms123@192.168.72.192/test/junos-srxhe-x86-64-21.4R3-S5.4.tgz /var/tmp/junos-srxhe-x86-64-21.4R3-S5.4.tgz routing-instance mgmt_junos"
+      register: load_target_file
+
+    - name: Print the target file response
+      debug:
+        var: "load_target_file"
+
+# Step 5-3: Waiting
+    - name: Wait for 10 minutes after loading the target file
+      pause:
+        minutes: 10
+
+
+# following steps are implement by cmd not device.software module and also we have to make sure the file is correct
+
+# Step 6: Validating the install
+    - name: Validate the install
+      shell: |
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "request vmhost software validate /var/tmp/junos-srxhe-x86-64-21.4R3-S5.4.tgz"
+      register: validate_install
+
+    - name: Print validation response
+      debug:
+        var: validate_install
+
+    - name: Check validation result
+      assert:
+        that:
+          - "'Validation succeeded' in validate_install.stdout"
+        fail_msg: "Validation failed."
+
+# Step 7: Upgrading
+    - name: Upgrade the software
+      shell: |
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "request vmhost software add /var/tmp/junos-install-mx-x86-64-19.4R3-S8.6.tgz no-validate reboot"
+      register: upgrade_result
+
+    - name: Print upgrade response
+      debug:
+        var: upgrade_result
+
+# Step 8: Waiting #2
+    - name: Wait for device to reboot
+      pause:
+        minutes: 15
+
+    - name: Wait until the device is reachable
+      wait_for:
+        host: "{{ ansible_host }}"
+        port: 22
+        delay: 10
+        timeout: 300
+
+    - name: Validate device uptime
+      shell: |
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show system uptime"
+      register: uptime_response
+      until: "'Protocols started' in uptime_response.stdout"
+      retries: 10
+      delay: 60
+
+    - name: Validate interface status
+      shell: |
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show interfaces terse"
+      register: interface_response
+      until: "'xe-' in interface_response.stdout and 'UP' in interface_response.stdout"
+      retries: 10
+      delay: 60
+
+    - name: Wait for 1 minute before continuing
+      pause:
+        minutes: 1
