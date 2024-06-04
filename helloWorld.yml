@@ -1,9 +1,10 @@
-- name: My first play
-  hosts: all
+---
+- name: Gather information from Juniper device
+  hosts: mx
+  connection: local
+  gather_facts: no
+    
+  
   tasks:
-   - name: Ping my hosts
+    - name: Ping my hosts
      ansible.builtin.ping:
-
-   - name: Print message
-     ansible.builtin.debug:
-      msg: Hello world
