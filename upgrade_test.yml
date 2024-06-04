@@ -7,15 +7,27 @@
     ansible_host: "192.168.72.14"
     ansible_user: "admin"
     ansible_password: "PACnms123"
-    
-  
+    ftp_user: "venkatag"
+    ftp_password: "PACnms123"
+    ftp_server: "192.168.72.192"
+    ftp_directory: "/test/ansible_automation/"
+    routing_instance: "mgmt_junos"
+    version_file: "filename_version"
+    hardware_file: "filename_hardware"
+    environment_file: "filename_environment"
+    configuration_file: "filename_configuration"
+    interfaces_file: "filename_interfaces"
+    bgp_file: "filename_bgp"
+    isis_file: "filename_isis"
+    ospf_file: "filename_ospf"
+    vrrp_file: "filename_vrrp"
+    storage_file: "filename_storage"
+    target_file: "junos-srxhe-x86-64-21.4R3-S5.4.tgz"
+
   tasks:
-    - name: Ping my hosts
-     ansible.builtin.ping:
-     
     - name: Get software version
       shell: |
-        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show version | save filename_version"
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show version | save {{ version_file }}"
       register: junos_result
 
     - name: Print response
@@ -24,7 +36,7 @@
 
     - name: Log the Hardware Version Information
       shell: |
-        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show chassis hardware | save filename_hardware"
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show chassis hardware | save {{ hardware_file }}"
       register: junos_result_hardware
 
     - name: Print Hardware Version response
@@ -33,7 +45,7 @@
 
     - name: Log the Chassis Environment Information
       shell: |
-        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show chassis environment | save filename_environment"
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show chassis environment | save {{ environment_file }}"
       register: junos_result_environment
 
     - name: Print Chassis Environment response
@@ -42,7 +54,7 @@
 
     - name: Log the Active Configuration
       shell: |
-        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show configuration | save filename_configuration"
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show configuration | save {{ configuration_file }}"
       register: junos_result_configuration
 
     - name: Print Active Configuration response
@@ -51,7 +63,7 @@
 
     - name: Log the Interfaces on the Router
       shell: |
-        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show interface terse | save filename_interfaces"
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show interface terse | save {{ interfaces_file }}"
       register: junos_result_interfaces
 
     - name: Print Interfaces response
@@ -60,7 +72,7 @@
 
     - name: Log the BGP Adjacency Information
       shell: |
-        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show bgp summary | save filename_bgp"
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show bgp summary | save {{ bgp_file }}"
       register: junos_result_bgp
 
     - name: Print BGP Adjacency response
@@ -69,7 +81,7 @@
 
     - name: Log the IS-IS Adjacency Information
       shell: |
-        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show isis adjacency brief | save filename_isis"
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show isis adjacency brief | save {{ isis_file }}"
       register: junos_result_isis
 
     - name: Print IS-IS Adjacency response
@@ -78,7 +90,7 @@
 
     - name: Log the OSPF Adjacency Information
       shell: |
-        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show ospf neighbor instance all | save filename_ospf"
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show ospf neighbor instance all | save {{ ospf_file }}"
       register: junos_result_ospf
 
     - name: Print OSPF Adjacency response
@@ -87,7 +99,7 @@
 
     - name: Log the VRRP Adjacency Information
       shell: |
-        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show vrrp summary | save filename_vrrp"
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show vrrp summary | save {{ vrrp_file }}"
       register: junos_result_vrrp
 
     - name: Print VRRP Adjacency response
@@ -96,7 +108,7 @@
 
     - name: Log the System Storage Information
       shell: |
-        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show system storage | save filename_storage"
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show system storage | save {{ storage_file }}"
       register: junos_result_storage
 
     - name: Print System Storage response
@@ -112,20 +124,20 @@
     - name: Set files to copy to FTP
       set_fact:
         files_to_copy:
-          - "/var/home/admin/filename_version"
-          - "/var/home/admin/filename_hardware"
-          - "/var/home/admin/filename_environment"
-          - "/var/home/admin/filename_configuration"
-          - "/var/home/admin/filename_interfaces"
-          - "/var/home/admin/filename_bgp"
-          - "/var/home/admin/filename_isis"
-          - "/var/home/admin/filename_ospf"
-          - "/var/home/admin/filename_vrrp"
-          - "/var/home/admin/filename_storage"    
+          - "/var/home/admin/{{ version_file }}"
+          - "/var/home/admin/{{ hardware_file }}"
+          - "/var/home/admin/{{ environment_file }}"
+          - "/var/home/admin/{{ configuration_file }}"
+          - "/var/home/admin/{{ interfaces_file }}"
+          - "/var/home/admin/{{ bgp_file }}"
+          - "/var/home/admin/{{ isis_file }}"
+          - "/var/home/admin/{{ ospf_file }}"
+          - "/var/home/admin/{{ vrrp_file }}"
+          - "/var/home/admin/{{ storage_file }}"    
 
     - name: Save to ftp     
       shell: |
-        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "file copy {{ item }} ftp://venkatag:PACnms123@192.168.72.192/test/ansible_automation/ routing-instance mgmt_junos"
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "file copy {{ item }} ftp://{{ ftp_user }}:{{ ftp_password }}@{{ ftp_server }}{{ ftp_directory }} routing-instance {{ routing_instance }}"
       loop: "{{ files_to_copy }}"
       register: junos_ftp
     - name: Print save to ftp response
@@ -145,10 +157,10 @@
       pause:
         seconds: 30
         
-# Step 4 MAKE SURE THE FILE NAME IS RIGHT
+# Step 4: Load the target file into the device
     - name: Load the target file into the device
       shell: |
-        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "file copy ftp://venkatag:PACnms123@192.168.72.192/test/junos-srxhe-x86-64-21.4R3-S5.4.tgz /var/tmp/junos-srxhe-x86-64-21.4R3-S5.4.tgz routing-instance mgmt_junos"
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "file copy ftp://{{ ftp_user }}:{{ ftp_password }}@{{ ftp_server }}{{ ftp_directory }}/{{ target_file }} /var/tmp/{{ target_file }} routing-instance {{ routing_instance }}"
       register: load_target_file
 
     - name: Print the target file response
@@ -161,12 +173,10 @@
         minutes: 10
 
 
-# following steps are implement by cmd not device.software module and also we have to make sure the file is correct
-
 # Step 6: Validating the install
     - name: Validate the install
       shell: |
-        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "request vmhost software validate /var/tmp/junos-srxhe-x86-64-21.4R3-S5.4.tgz"
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "request vmhost software validate /var/tmp/{{ target_file }}"
       register: validate_install
 
     - name: Print validation response
@@ -178,3 +188,13 @@
         that:
           - "'Validation succeeded' in validate_install.stdout"
         fail_msg: "Validation failed."
+
+# Step 7: Upgrading
+    - name: Upgrade the software
+      shell: |
+        sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "request vmhost software add /var/tmp/{{ target_file }} no-validate reboot"
+      register: upgrade_result
+
+    - name: Print upgrade response
+      debug:
+        var: upgrade_result
