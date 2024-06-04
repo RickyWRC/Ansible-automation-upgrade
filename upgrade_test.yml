@@ -1,6 +1,6 @@
 ---
 - name: Gather information from Juniper device
-  hosts: hosts
+  hosts: mx
   connection: local
   gather_facts: no
   vars:
@@ -8,7 +8,11 @@
     ansible_user: "admin"
     ansible_password: "PACnms123"
     
+  
   tasks:
+   - name: Ping my hosts
+     ansible.builtin.ping:
+     
     - name: Get software version
       shell: |
         sshpass -p '{{ ansible_password }}' ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ ansible_host }} "show version | save filename_version"
