@@ -1,6 +1,6 @@
 ---
 - name: Gather information from Juniper device
-  hosts: mx
+  hosts: mx1
   connection: local
   gather_facts: no
   vars:
